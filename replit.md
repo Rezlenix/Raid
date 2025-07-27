@@ -32,6 +32,7 @@ Preferred communication style: Simple, everyday language.
 - Added wipe schedule commands (/wipe and !wipe) displaying Rust server information
 - Added COTR guide commands (/cotr and !cotr) providing quick access to documentation link
 - Added dog meme commands (/susa and !susa) that fetch random dog gifs using multiple APIs
+- Added pica image commands (/pica and !pica) that display a specific embedded image
 
 ## System Architecture
 

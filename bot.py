@@ -300,6 +300,26 @@ async def slash_susa_command(interaction: discord.Interaction):
         await interaction.followup.send("❌ Error fetching dog meme.", ephemeral=True)
 
 
+@bot.tree.command(name="pica", description="Send the pica image")
+async def slash_pica_command(interaction: discord.Interaction):
+    """Slash command to send the pica image."""
+    try:
+        logger.info(f"Slash pica command executed by {interaction.user.name}")
+        
+        embed = discord.Embed(
+            title="🖼️ Pica",
+            color=discord.Color.purple()
+        )
+        embed.set_image(url="https://i.ibb.co/99vyV5qr/jsempica.png")
+        
+        await interaction.response.send_message(embed=embed)
+        logger.info(f"Slash pica command completed successfully for {interaction.user.name}")
+        
+    except Exception as e:
+        logger.error(f"Error in slash pica command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error displaying pica image.", ephemeral=True)
+
+
 # === TRADITIONAL PREFIX COMMANDS ===
 
 
@@ -613,6 +633,26 @@ async def prefix_susa_command(ctx):
     except Exception as e:
         logger.error(f"Error in prefix susa command: {e}", exc_info=True)
         await ctx.send("❌ Error fetching dog meme.")
+
+
+@bot.command(name="pica")
+async def prefix_pica_command(ctx):
+    """Traditional prefix command to send the pica image."""
+    try:
+        logger.info(f"Prefix pica command executed by {ctx.author}")
+        
+        embed = discord.Embed(
+            title="🖼️ Pica",
+            color=discord.Color.purple()
+        )
+        embed.set_image(url="https://i.ibb.co/99vyV5qr/jsempica.png")
+        
+        await ctx.send(embed=embed)
+        logger.info(f"Prefix pica command completed successfully for {ctx.author}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix pica command: {e}", exc_info=True)
+        await ctx.send("❌ Error displaying pica image.")
 
 
 # === ERROR HANDLERS ===
