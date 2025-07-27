@@ -8,6 +8,13 @@ This is a Discord bot designed for raid coordination in gaming communities. The 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (July 26, 2025)
+
+- Updated raid participant data to custom Czech/Slovak participants and roles
+- Added support for both `/raid` slash command and `!raid` traditional prefix command
+- Enabled message content intent for traditional command support
+- Created shared embed creation function for both command types
+
 ## System Architecture
 
 The application follows a simple, modular architecture with clear separation of concerns:

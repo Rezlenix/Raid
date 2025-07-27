@@ -7,16 +7,11 @@ Also defines the reaction emojis to be added automatically.
 # Raid participants with their names and associated text/roles
 # Format: "Name": "Role/Description"
 RAID_DATA = {
-    "Alex Thunder": "Tank - Shield Bearer",
-    "Sarah Lightbringer": "Healer - Divine Support",
-    "Marcus Shadowstrike": "DPS - Stealth Assassin",
-    "Elena Firebrand": "DPS - Flame Mage",
-    "Thorin Ironforge": "Tank - Heavy Defender",
-    "Luna Starweaver": "Support - Buff Specialist",
-    "Gareth Swiftstrike": "DPS - Dual Wielder",
-    "Aria Frostwind": "DPS - Ice Sorceress",
-    "Brock Stormhammer": "DPS - Berserker",
-    "Zara Moonwhisper": "Healer - Nature's Guardian"
+    "Hordis": "Matro a veci na base",
+    "Sawag": "Turrety, double doory, veci na turrety",
+    "Cloudy": "Bedy, Rakety",
+    "Adam": "Boxy, dvere",
+    "Dalago/Susa/Whoever": "Rickyho kity"
 }
 
 # Reaction emojis to be added automatically to raid messages

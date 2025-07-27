@@ -15,12 +15,12 @@ class RaidBot(commands.Bot):
     """Discord bot for handling raid commands and reactions."""
     
     def __init__(self):
-        # Set up bot intents - using default intents only to avoid privileged intent issues
+        # Set up bot intents - enabling message content for traditional commands
         intents = discord.Intents.default()
-        # Remove message_content intent as it's privileged and not needed for slash commands
+        intents.message_content = True  # Required for traditional prefix commands
         
         super().__init__(
-            command_prefix='!',  # Traditional prefix (though we're using slash commands)
+            command_prefix='!',  # Traditional prefix for !raid command
             intents=intents,
             description="A Discord bot for raid coordination with automatic reactions"
         )
@@ -55,43 +55,51 @@ class RaidBot(commands.Bot):
 # Create bot instance
 bot = RaidBot()
 
+async def create_raid_embed():
+    """
+    Create and return the raid embed with participant information.
+    """
+    embed = discord.Embed(
+        title="🗡️ Raid Participants",
+        description="Ready for battle!",
+        color=discord.Color.red()
+    )
+    
+    # Add raid participants to the embed
+    if not RAID_DATA:
+        embed.add_field(
+            name="No Participants",
+            value="No raid participants configured. Please check raid_data.py",
+            inline=False
+        )
+    else:
+        # Group participants by their role/text for better organization
+        participant_text = ""
+        for i, (name, role_text) in enumerate(RAID_DATA.items(), 1):
+            participant_text += f"**{i}.** {name} - *{role_text}*\n"
+        
+        embed.add_field(
+            name="Participants",
+            value=participant_text,
+            inline=False
+        )
+    
+    # Add footer with participant count
+    embed.set_footer(text=f"Total participants: {len(RAID_DATA)}")
+    
+    return embed
+
 @bot.tree.command(name="raid", description="Display raid participants and add reactions")
-async def raid_command(interaction: discord.Interaction):
+async def slash_raid_command(interaction: discord.Interaction):
     """
     Slash command to display raid participants with their roles/text.
     Automatically adds reactions to the message.
     """
     try:
-        logger.info(f"Raid command executed by {interaction.user} in {interaction.guild}")
+        logger.info(f"Slash raid command executed by {interaction.user} in {interaction.guild}")
         
-        # Build the raid message
-        embed = discord.Embed(
-            title="🗡️ Raid Participants",
-            description="Ready for battle!",
-            color=discord.Color.red()
-        )
-        
-        # Add raid participants to the embed
-        if not RAID_DATA:
-            embed.add_field(
-                name="No Participants",
-                value="No raid participants configured. Please check raid_data.py",
-                inline=False
-            )
-        else:
-            # Group participants by their role/text for better organization
-            participant_text = ""
-            for i, (name, role_text) in enumerate(RAID_DATA.items(), 1):
-                participant_text += f"**{i}.** {name} - *{role_text}*\n"
-            
-            embed.add_field(
-                name="Participants",
-                value=participant_text,
-                inline=False
-            )
-        
-        # Add footer with participant count
-        embed.set_footer(text=f"Total participants: {len(RAID_DATA)}")
+        # Create the raid embed
+        embed = await create_raid_embed()
         
         # Respond to the interaction
         await interaction.response.send_message(embed=embed)
@@ -102,10 +110,10 @@ async def raid_command(interaction: discord.Interaction):
         # Add reactions automatically
         await add_reactions_to_message(message)
         
-        logger.info(f"Raid command completed successfully for {interaction.user}")
+        logger.info(f"Slash raid command completed successfully for {interaction.user}")
         
     except Exception as e:
-        logger.error(f"Error in raid command: {e}", exc_info=True)
+        logger.error(f"Error in slash raid command: {e}", exc_info=True)
         
         # Send error message to user
         error_embed = discord.Embed(
@@ -119,6 +127,41 @@ async def raid_command(interaction: discord.Interaction):
                 await interaction.followup.send(embed=error_embed, ephemeral=True)
             else:
                 await interaction.response.send_message(embed=error_embed, ephemeral=True)
+        except Exception as followup_error:
+            logger.error(f"Failed to send error message: {followup_error}")
+
+@bot.command(name="raid")
+async def prefix_raid_command(ctx):
+    """
+    Traditional prefix command (!raid) to display raid participants with their roles/text.
+    Automatically adds reactions to the message.
+    """
+    try:
+        logger.info(f"Prefix raid command executed by {ctx.author} in {ctx.guild}")
+        
+        # Create the raid embed
+        embed = await create_raid_embed()
+        
+        # Send the message
+        message = await ctx.send(embed=embed)
+        
+        # Add reactions automatically
+        await add_reactions_to_message(message)
+        
+        logger.info(f"Prefix raid command completed successfully for {ctx.author}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix raid command: {e}", exc_info=True)
+        
+        # Send error message to user
+        error_embed = discord.Embed(
+            title="❌ Error",
+            description="An error occurred while processing the raid command.",
+            color=discord.Color.red()
+        )
+        
+        try:
+            await ctx.send(embed=error_embed)
         except Exception as followup_error:
             logger.error(f"Failed to send error message: {followup_error}")
 
