@@ -15,9 +15,10 @@ class RaidBot(commands.Bot):
     """Discord bot for handling raid commands and reactions."""
     
     def __init__(self):
-        # Set up bot intents - enabling message content for traditional commands
+        # Set up bot intents - using default intents only for now
         intents = discord.Intents.default()
-        intents.message_content = True  # Required for traditional prefix commands
+        # Note: message_content intent is disabled to avoid privileged intent requirement
+        # Enable it in Discord Developer Portal to use !raid command
         
         super().__init__(
             command_prefix='!',  # Traditional prefix for !raid command
