@@ -31,6 +31,7 @@ Preferred communication style: Simple, everyday language.
 - Users can now freely react to multiple participant emojis without restriction
 - Added wipe schedule commands (/wipe and !wipe) displaying Rust server information
 - Added COTR guide commands (/cotr and !cotr) providing quick access to documentation link
+- Added dog meme commands (/susa and !susa) that fetch random dog gifs using multiple APIs
 
 ## System Architecture
 

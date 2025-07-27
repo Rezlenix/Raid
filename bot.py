@@ -9,9 +9,57 @@ import logging
 import asyncio
 import datetime
 import uuid
+import aiohttp
+import random
 from raid_data import RAID_DATA, REACTION_EMOJIS, SCHEDULED_RAIDS, PARTICIPANT_EMOJIS
 
 logger = logging.getLogger(__name__)
+
+
+async def get_random_dog_gif():
+    """Fetch a random dog gif/image from multiple APIs with fallbacks."""
+    apis = [
+        {
+            'url': 'https://random.dog/woof.json',
+            'parser': lambda data: data.get('url') if data.get('url') and (data.get('url').endswith('.gif') or data.get('url').endswith('.mp4') or data.get('url').endswith('.webm')) else None
+        },
+        {
+            'url': 'https://dog.ceo/api/breeds/image/random',
+            'parser': lambda data: data.get('message') if data.get('status') == 'success' else None
+        }
+    ]
+    
+    # Shuffle APIs for randomness
+    random.shuffle(apis)
+    
+    async with aiohttp.ClientSession() as session:
+        for api in apis:
+            try:
+                async with session.get(api['url'], timeout=aiohttp.ClientTimeout(total=5)) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        result = api['parser'](data)
+                        if result:
+                            # For random.dog, prioritize GIFs and videos
+                            if 'random.dog' in api['url']:
+                                # Try a few times to get a gif/video from random.dog
+                                for attempt in range(3):
+                                    if result.endswith(('.gif', '.mp4', '.webm')):
+                                        return result
+                                    # Try again
+                                    async with session.get(api['url'], timeout=aiohttp.ClientTimeout(total=5)) as retry_response:
+                                        if retry_response.status == 200:
+                                            retry_data = await retry_response.json()
+                                            result = api['parser'](retry_data)
+                                            if result and result.endswith(('.gif', '.mp4', '.webm')):
+                                                return result
+                            return result
+            except Exception as e:
+                logger.warning(f"Failed to fetch from {api['url']}: {e}")
+                continue
+    
+    # Fallback - return a default message if all APIs fail
+    return None
 
 
 class RaidBot(commands.Bot):
@@ -221,6 +269,35 @@ async def slash_cotr_command(interaction: discord.Interaction):
         logger.error(f"Error in slash cotr command: {e}", exc_info=True)
         await interaction.response.send_message(
             "❌ Error displaying COTR guide.", ephemeral=True)
+
+
+@bot.tree.command(name="susa", description="Send a random dog meme gif")
+async def slash_susa_command(interaction: discord.Interaction):
+    """Slash command to send a random dog meme gif."""
+    try:
+        logger.info(f"Slash susa command executed by {interaction.user.name}")
+        
+        # Defer the response since fetching might take a moment
+        await interaction.response.defer()
+        
+        # Get random dog gif
+        dog_url = await get_random_dog_gif()
+        
+        if dog_url:
+            embed = discord.Embed(
+                title="🐕 Random Dog Meme",
+                color=discord.Color.orange()
+            )
+            embed.set_image(url=dog_url)
+            await interaction.followup.send(embed=embed)
+            logger.info(f"Slash susa command completed successfully for {interaction.user.name}")
+        else:
+            await interaction.followup.send("❌ Sorry, couldn't fetch a dog gif right now. Try again!")
+            logger.warning(f"Slash susa command failed to fetch gif for {interaction.user.name}")
+        
+    except Exception as e:
+        logger.error(f"Error in slash susa command: {e}", exc_info=True)
+        await interaction.followup.send("❌ Error fetching dog meme.", ephemeral=True)
 
 
 # === TRADITIONAL PREFIX COMMANDS ===
@@ -507,6 +584,35 @@ async def prefix_cotr_command(ctx):
     except Exception as e:
         logger.error(f"Error in prefix cotr command: {e}", exc_info=True)
         await ctx.send("❌ Error displaying COTR guide.")
+
+
+@bot.command(name="susa")
+async def prefix_susa_command(ctx):
+    """Traditional prefix command to send a random dog meme gif."""
+    try:
+        logger.info(f"Prefix susa command executed by {ctx.author}")
+        
+        # Send thinking message
+        thinking_msg = await ctx.send("🐕 Fetching a random dog meme...")
+        
+        # Get random dog gif
+        dog_url = await get_random_dog_gif()
+        
+        if dog_url:
+            embed = discord.Embed(
+                title="🐕 Random Dog Meme",
+                color=discord.Color.orange()
+            )
+            embed.set_image(url=dog_url)
+            await thinking_msg.edit(content="", embed=embed)
+            logger.info(f"Prefix susa command completed successfully for {ctx.author}")
+        else:
+            await thinking_msg.edit(content="❌ Sorry, couldn't fetch a dog gif right now. Try again!")
+            logger.warning(f"Prefix susa command failed to fetch gif for {ctx.author}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix susa command: {e}", exc_info=True)
+        await ctx.send("❌ Error fetching dog meme.")
 
 
 # === ERROR HANDLERS ===
