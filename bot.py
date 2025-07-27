@@ -414,8 +414,13 @@ async def slash_cancel_command(interaction: discord.Interaction, raid_id: str):
         
         # Check if user is the creator or has admin permissions
         has_admin = False
-        if hasattr(interaction.user, 'guild_permissions') and interaction.user.guild_permissions:
-            has_admin = interaction.user.guild_permissions.administrator
+        try:
+            if hasattr(interaction, 'guild') and interaction.guild:
+                member = interaction.guild.get_member(interaction.user.id)
+                if member and member.guild_permissions.administrator:
+                    has_admin = True
+        except Exception:
+            pass
         
         if str(interaction.user) != raid["creator"] and not has_admin:
             await interaction.response.send_message("❌ Only the raid creator or administrators can cancel raids.", ephemeral=True)
