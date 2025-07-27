@@ -27,8 +27,8 @@ Preferred communication style: Simple, everyday language.
 - Enhanced visual presentation with participant-specific icons instead of generic reactions
 - Simplified command structure: removed all slash commands except /raid while keeping all prefix commands
 - Bot now focuses on core raid display functionality with reduced command complexity
-- Added reaction management: users can only have one active reaction per raid message
-- Automatic removal of previous reactions when users select a different participant
+- Removed reaction management to prevent Discord API rate limiting issues
+- Users can now freely react to multiple participant emojis without restriction
 
 ## System Architecture
 

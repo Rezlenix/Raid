@@ -59,31 +59,7 @@ class RaidBot(commands.Bot):
         """Handle bot errors."""
         logger.error(f"Bot error in event {event}", exc_info=True)
     
-    async def on_reaction_add(self, reaction, user):
-        """Handle reaction additions to enforce one reaction per user on raid messages."""
-        # Ignore bot's own reactions
-        if user.bot:
-            return
-        
-        # Check if this is a raid message (has our custom emojis)
-        if str(reaction.emoji) in REACTION_EMOJIS:
-            # Check if bot has manage messages permission
-            if not reaction.message.guild.me.guild_permissions.manage_messages:
-                logger.warning("Bot lacks 'Manage Messages' permission - cannot enforce single reaction rule")
-                return
-                
-            # Get all reactions on this message
-            for react in reaction.message.reactions:
-                # If user has reacted to a different emoji, remove their old reaction
-                if str(react.emoji) in REACTION_EMOJIS and str(react.emoji) != str(reaction.emoji):
-                    async for reactor in react.users():
-                        if reactor == user:
-                            try:
-                                await react.remove(user)
-                                logger.info(f"Removed {user.name}'s reaction {react.emoji} to enforce single reaction rule")
-                            except discord.HTTPException as e:
-                                logger.warning(f"Failed to remove reaction: {e}")
-                            break
+
 
 # Create bot instance
 bot = RaidBot()
