@@ -67,6 +67,11 @@ class RaidBot(commands.Bot):
         
         # Check if this is a raid message (has our custom emojis)
         if str(reaction.emoji) in REACTION_EMOJIS:
+            # Check if bot has manage messages permission
+            if not reaction.message.guild.me.guild_permissions.manage_messages:
+                logger.warning("Bot lacks 'Manage Messages' permission - cannot enforce single reaction rule")
+                return
+                
             # Get all reactions on this message
             for react in reaction.message.reactions:
                 # If user has reacted to a different emoji, remove their old reaction
