@@ -8,7 +8,7 @@ import asyncio
 import logging
 import os
 import sys
-from bot import RaidBot
+from bot import bot
 
 # Configure logging
 logging.basicConfig(
@@ -33,9 +33,7 @@ async def main():
             logger.error("Please set your Discord bot token in the environment variables.")
             sys.exit(1)
         
-        # Create and start the bot
-        bot = RaidBot()
-        
+        # Use the pre-configured bot instance with commands
         logger.info("Starting Discord Raid Bot...")
         await bot.start(bot_token)
         

@@ -19,6 +19,9 @@ Preferred communication style: Simple, everyday language.
 - Added in-memory raid storage with participant tracking
 - Implemented permission checks for raid cancellation (creator or admin only)
 - Added reaction-based participation system for scheduled raids
+- Fixed critical command registration issue by correcting bot instance usage in main.py
+- All 6 slash commands and 6 traditional prefix commands now fully operational
+- Bot successfully syncing commands and showing proper registration logs
 
 ## System Architecture
 
