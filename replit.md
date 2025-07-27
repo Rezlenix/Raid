@@ -29,6 +29,8 @@ Preferred communication style: Simple, everyday language.
 - Bot now focuses on core raid display functionality with reduced command complexity
 - Removed reaction management to prevent Discord API rate limiting issues
 - Users can now freely react to multiple participant emojis without restriction
+- Added wipe schedule commands (/wipe and !wipe) displaying Rust server information
+- Added COTR guide commands (/cotr and !cotr) providing quick access to documentation link
 
 ## System Architecture
 

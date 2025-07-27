@@ -167,6 +167,44 @@ async def slash_raid_command(interaction: discord.Interaction):
         except Exception as followup_error:
             logger.error(f"Failed to send error message: {followup_error}")
 
+@bot.tree.command(name="wipe", description="Display wipe schedule for Rust servers")
+async def slash_wipe_command(interaction: discord.Interaction):
+    """Slash command to display wipe schedule."""
+    try:
+        logger.info(f"Slash wipe command executed by {interaction.user.name}")
+        
+        embed = discord.Embed(
+            title="🗓️ Wipe Schedule",
+            description="US 2x Quad - Pondělí a pátek 20:00 - connect us2xq.warbandits.gg\nUS 2x Max5 - Úterý a sobota 20:00 - connect us2xm5.warbandits.gg\nUS 2x Trio - Neděle a čtvrtek 20:00 - connect us2xt.warbandits.gg",
+            color=discord.Color.blue()
+        )
+        
+        await interaction.response.send_message(embed=embed)
+        logger.info(f"Slash wipe command completed successfully for {interaction.user.name}")
+        
+    except Exception as e:
+        logger.error(f"Error in slash wipe command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error displaying wipe schedule.", ephemeral=True)
+
+@bot.tree.command(name="cotr", description="Display COTR guide link")
+async def slash_cotr_command(interaction: discord.Interaction):
+    """Slash command to display COTR guide link."""
+    try:
+        logger.info(f"Slash cotr command executed by {interaction.user.name}")
+        
+        embed = discord.Embed(
+            title="📖 COTR Guide",
+            description="https://docs.google.com/document/d/1BXhyJs94A_Hh1RGt3ptsjJbKjzDsRGABtCC9HSM-m7c/edit?usp=sharing",
+            color=discord.Color.green()
+        )
+        
+        await interaction.response.send_message(embed=embed)
+        logger.info(f"Slash cotr command completed successfully for {interaction.user.name}")
+        
+    except Exception as e:
+        logger.error(f"Error in slash cotr command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error displaying COTR guide.", ephemeral=True)
+
 
 
 
@@ -405,6 +443,44 @@ async def prefix_raids_command(ctx):
     except Exception as e:
         logger.error(f"Error in prefix raids command: {e}", exc_info=True)
         await ctx.send("❌ Error listing raids.")
+
+@bot.command(name="wipe")
+async def prefix_wipe_command(ctx):
+    """Traditional prefix command to display wipe schedule."""
+    try:
+        logger.info(f"Prefix wipe command executed by {ctx.author}")
+        
+        embed = discord.Embed(
+            title="🗓️ Wipe Schedule",
+            description="US 2x Quad - Pondělí a pátek 20:00 - connect us2xq.warbandits.gg\nUS 2x Max5 - Úterý a sobota 20:00 - connect us2xm5.warbandits.gg\nUS 2x Trio - Neděle a čtvrtek 20:00 - connect us2xt.warbandits.gg",
+            color=discord.Color.blue()
+        )
+        
+        await ctx.send(embed=embed)
+        logger.info(f"Prefix wipe command completed successfully for {ctx.author}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix wipe command: {e}", exc_info=True)
+        await ctx.send("❌ Error displaying wipe schedule.")
+
+@bot.command(name="cotr")
+async def prefix_cotr_command(ctx):
+    """Traditional prefix command to display COTR guide link."""
+    try:
+        logger.info(f"Prefix cotr command executed by {ctx.author}")
+        
+        embed = discord.Embed(
+            title="📖 COTR Guide",
+            description="https://docs.google.com/document/d/1BXhyJs94A_Hh1RGt3ptsjJbKjzDsRGABtCC9HSM-m7c/edit?usp=sharing",
+            color=discord.Color.green()
+        )
+        
+        await ctx.send(embed=embed)
+        logger.info(f"Prefix cotr command completed successfully for {ctx.author}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix cotr command: {e}", exc_info=True)
+        await ctx.send("❌ Error displaying COTR guide.")
 
 # === ERROR HANDLERS ===
 
