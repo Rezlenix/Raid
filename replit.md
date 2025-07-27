@@ -25,6 +25,8 @@ Preferred communication style: Simple, everyday language.
 - Implemented custom participant icons using regional flag emojis (🇭🇸🇨🇦🇿)
 - Updated raid display to show personalized emojis for each participant based on their name's first letter
 - Enhanced visual presentation with participant-specific icons instead of generic reactions
+- Simplified command structure: removed all slash commands except /raid while keeping all prefix commands
+- Bot now focuses on core raid display functionality with reduced command complexity
 
 ## System Architecture
 
