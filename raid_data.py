@@ -11,23 +11,27 @@ RAID_DATA = {
     "Sawag": "Turrety, double doory, veci na turrety",
     "Cloudy": "Bedy, Rakety",
     "Adam": "Boxy, dvere",
-    "Dalago/Susa/Whoever": "Rickyho kity"
+    "Zbytek": "Rickyho kity"
 }
 
-# Reaction emojis to be added automatically to raid messages
-# These will be added in order to the raid command message
+# Participant-specific reaction emojis based on first letter of names
+# Each participant gets a unique letter emoji matching their name
 REACTION_EMOJIS = [
-    "⚔️",  # Crossed swords
-    "🛡️",  # Shield
-    "🏹",  # Bow and arrow
-    "✨",  # Sparkles (magic)
-    "💪",  # Flexed biceps (strength)
-    "🔥",  # Fire
-    "❄️",  # Snowflake (ice)
-    "⚡",  # Lightning bolt
-    "🌟",  # Star
-    "👑"   # Crown (leadership)
+    "🇭",  # H for Hordis
+    "🇸",  # S for Sawag  
+    "🇨",  # C for Cloudy
+    "🇦",  # A for Adam
+    "🇿"   # Z for Zbytek
 ]
+
+# Mapping of participants to their letter emojis for easy reference
+PARTICIPANT_EMOJIS = {
+    "Hordis": "🇭",
+    "Sawag": "🇸", 
+    "Cloudy": "🇨",
+    "Adam": "🇦",
+    "Zbytek": "🇿"
+}
 
 # Scheduled raids storage (in-memory for now)
 # Format: {"raid_id": {"name": "Raid Name", "time": "Schedule", "creator": "User", "participants": []}}

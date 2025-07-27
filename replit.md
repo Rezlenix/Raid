@@ -22,6 +22,9 @@ Preferred communication style: Simple, everyday language.
 - Fixed critical command registration issue by correcting bot instance usage in main.py
 - All 6 slash commands and 6 traditional prefix commands now fully operational
 - Bot successfully syncing commands and showing proper registration logs
+- Implemented custom participant icons using regional flag emojis (🇭🇸🇨🇦🇿)
+- Updated raid display to show personalized emojis for each participant based on their name's first letter
+- Enhanced visual presentation with participant-specific icons instead of generic reactions
 
 ## System Architecture
 

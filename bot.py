@@ -9,7 +9,7 @@ import logging
 import asyncio
 import datetime
 import uuid
-from raid_data import RAID_DATA, REACTION_EMOJIS, SCHEDULED_RAIDS
+from raid_data import RAID_DATA, REACTION_EMOJIS, SCHEDULED_RAIDS, PARTICIPANT_EMOJIS
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +80,11 @@ async def create_raid_embed():
             inline=False
         )
     else:
-        # Group participants by their role/text for better organization
+        # Group participants by their role/text with custom emojis
         participant_text = ""
         for i, (name, role_text) in enumerate(RAID_DATA.items(), 1):
-            participant_text += f"**{i}.** {name} - *{role_text}*\n"
+            emoji = PARTICIPANT_EMOJIS.get(name, "⚔️")  # Default to sword if not found
+            participant_text += f"{emoji} **{name}** - *{role_text}*\n"
         
         embed.add_field(
             name="Participants",
