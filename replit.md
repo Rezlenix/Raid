@@ -14,6 +14,11 @@ Preferred communication style: Simple, everyday language.
 - Added support for both `/raid` slash command and `!raid` traditional prefix command
 - Enabled message content intent for traditional command support
 - Created shared embed creation function for both command types
+- Implemented comprehensive raid management system with scheduling capabilities
+- Added 8 new commands: schedule, join, leave, cancel, raids (both slash and prefix versions)
+- Added in-memory raid storage with participant tracking
+- Implemented permission checks for raid cancellation (creator or admin only)
+- Added reaction-based participation system for scheduled raids
 
 ## System Architecture
 

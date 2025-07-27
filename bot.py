@@ -7,7 +7,9 @@ import discord
 from discord.ext import commands
 import logging
 import asyncio
-from raid_data import RAID_DATA, REACTION_EMOJIS
+import datetime
+import uuid
+from raid_data import RAID_DATA, REACTION_EMOJIS, SCHEDULED_RAIDS
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,8 @@ class RaidBot(commands.Bot):
     
     async def on_ready(self):
         """Called when the bot has successfully connected to Discord."""
-        logger.info(f"Bot logged in as {self.user} (ID: {self.user.id})")
+        if self.user:
+            logger.info(f"Bot logged in as {self.user} (ID: {self.user.id})")
         logger.info(f"Bot is ready and connected to {len(self.guilds)} guild(s)")
         
         # Set bot status
@@ -164,6 +167,399 @@ async def prefix_raid_command(ctx):
             await ctx.send(embed=error_embed)
         except Exception as followup_error:
             logger.error(f"Failed to send error message: {followup_error}")
+
+# Schedule Raid Commands
+@bot.tree.command(name="schedule", description="Schedule a new raid")
+async def slash_schedule_command(interaction: discord.Interaction, raid_name: str, time: str, description: str = ""):
+    """
+    Slash command to schedule a new raid.
+    """
+    try:
+        logger.info(f"Schedule command executed by {interaction.user}")
+        
+        # Generate unique raid ID
+        raid_id = str(uuid.uuid4())[:8]
+        
+        # Store raid information
+        SCHEDULED_RAIDS[raid_id] = {
+            "name": raid_name,
+            "time": time,
+            "description": description,
+            "creator": str(interaction.user),
+            "participants": [],
+            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        
+        # Create embed
+        embed = discord.Embed(
+            title="📅 Raid Scheduled",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Raid Name", value=raid_name, inline=True)
+        embed.add_field(name="Time", value=time, inline=True)
+        embed.add_field(name="Raid ID", value=raid_id, inline=True)
+        if description:
+            embed.add_field(name="Description", value=description, inline=False)
+        embed.add_field(name="Created by", value=interaction.user.mention, inline=True)
+        embed.add_field(name="Participants", value="None yet", inline=True)
+        embed.set_footer(text=f"Use /join {raid_id} to participate")
+        
+        await interaction.response.send_message(embed=embed)
+        
+        # Add reactions for join/leave
+        message = await interaction.original_response()
+        await message.add_reaction("✅")  # Join
+        await message.add_reaction("❌")  # Leave
+        
+        logger.info(f"Raid scheduled successfully: {raid_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in schedule command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error scheduling raid.", ephemeral=True)
+
+@bot.command(name="schedule")
+async def prefix_schedule_command(ctx, raid_name: str, time: str, *, description: str = ""):
+    """
+    Traditional prefix command to schedule a new raid.
+    Usage: !schedule "Raid Name" "Time" Description
+    """
+    try:
+        logger.info(f"Prefix schedule command executed by {ctx.author}")
+        
+        # Generate unique raid ID
+        raid_id = str(uuid.uuid4())[:8]
+        
+        # Store raid information
+        SCHEDULED_RAIDS[raid_id] = {
+            "name": raid_name,
+            "time": time,
+            "description": description,
+            "creator": str(ctx.author),
+            "participants": [],
+            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        
+        # Create embed
+        embed = discord.Embed(
+            title="📅 Raid Scheduled",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Raid Name", value=raid_name, inline=True)
+        embed.add_field(name="Time", value=time, inline=True)
+        embed.add_field(name="Raid ID", value=raid_id, inline=True)
+        if description:
+            embed.add_field(name="Description", value=description, inline=False)
+        embed.add_field(name="Created by", value=ctx.author.mention, inline=True)
+        embed.add_field(name="Participants", value="None yet", inline=True)
+        embed.set_footer(text=f"Use !join {raid_id} to participate")
+        
+        message = await ctx.send(embed=embed)
+        
+        # Add reactions for join/leave
+        await message.add_reaction("✅")  # Join
+        await message.add_reaction("❌")  # Leave
+        
+        logger.info(f"Raid scheduled successfully: {raid_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix schedule command: {e}", exc_info=True)
+        await ctx.send("❌ Error scheduling raid.")
+
+# Join Raid Commands
+@bot.tree.command(name="join", description="Join a scheduled raid")
+async def slash_join_command(interaction: discord.Interaction, raid_id: str):
+    """
+    Slash command to join a scheduled raid.
+    """
+    try:
+        if raid_id not in SCHEDULED_RAIDS:
+            await interaction.response.send_message("❌ Raid not found.", ephemeral=True)
+            return
+        
+        raid = SCHEDULED_RAIDS[raid_id]
+        user_name = str(interaction.user)
+        
+        if user_name in raid["participants"]:
+            await interaction.response.send_message("⚠️ You're already participating in this raid.", ephemeral=True)
+            return
+        
+        raid["participants"].append(user_name)
+        
+        embed = discord.Embed(
+            title="✅ Joined Raid",
+            description=f"You've joined the raid: **{raid['name']}**",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Time", value=raid["time"], inline=True)
+        embed.add_field(name="Participants", value=f"{len(raid['participants'])}", inline=True)
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        logger.info(f"{user_name} joined raid {raid_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in join command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error joining raid.", ephemeral=True)
+
+@bot.command(name="join")
+async def prefix_join_command(ctx, raid_id: str):
+    """
+    Traditional prefix command to join a scheduled raid.
+    """
+    try:
+        if raid_id not in SCHEDULED_RAIDS:
+            await ctx.send("❌ Raid not found.")
+            return
+        
+        raid = SCHEDULED_RAIDS[raid_id]
+        user_name = str(ctx.author)
+        
+        if user_name in raid["participants"]:
+            await ctx.send("⚠️ You're already participating in this raid.")
+            return
+        
+        raid["participants"].append(user_name)
+        
+        embed = discord.Embed(
+            title="✅ Joined Raid",
+            description=f"You've joined the raid: **{raid['name']}**",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Time", value=raid["time"], inline=True)
+        embed.add_field(name="Participants", value=f"{len(raid['participants'])}", inline=True)
+        
+        await ctx.send(embed=embed)
+        logger.info(f"{user_name} joined raid {raid_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix join command: {e}", exc_info=True)
+        await ctx.send("❌ Error joining raid.")
+
+# Leave Raid Commands
+@bot.tree.command(name="leave", description="Leave a scheduled raid")
+async def slash_leave_command(interaction: discord.Interaction, raid_id: str):
+    """
+    Slash command to leave a scheduled raid.
+    """
+    try:
+        if raid_id not in SCHEDULED_RAIDS:
+            await interaction.response.send_message("❌ Raid not found.", ephemeral=True)
+            return
+        
+        raid = SCHEDULED_RAIDS[raid_id]
+        user_name = str(interaction.user)
+        
+        if user_name not in raid["participants"]:
+            await interaction.response.send_message("⚠️ You're not participating in this raid.", ephemeral=True)
+            return
+        
+        raid["participants"].remove(user_name)
+        
+        embed = discord.Embed(
+            title="❌ Left Raid",
+            description=f"You've left the raid: **{raid['name']}**",
+            color=discord.Color.orange()
+        )
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        logger.info(f"{user_name} left raid {raid_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in leave command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error leaving raid.", ephemeral=True)
+
+@bot.command(name="leave")
+async def prefix_leave_command(ctx, raid_id: str):
+    """
+    Traditional prefix command to leave a scheduled raid.
+    """
+    try:
+        if raid_id not in SCHEDULED_RAIDS:
+            await ctx.send("❌ Raid not found.")
+            return
+        
+        raid = SCHEDULED_RAIDS[raid_id]
+        user_name = str(ctx.author)
+        
+        if user_name not in raid["participants"]:
+            await ctx.send("⚠️ You're not participating in this raid.")
+            return
+        
+        raid["participants"].remove(user_name)
+        
+        embed = discord.Embed(
+            title="❌ Left Raid",
+            description=f"You've left the raid: **{raid['name']}**",
+            color=discord.Color.orange()
+        )
+        
+        await ctx.send(embed=embed)
+        logger.info(f"{user_name} left raid {raid_id}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix leave command: {e}", exc_info=True)
+        await ctx.send("❌ Error leaving raid.")
+
+# Cancel Raid Commands
+@bot.tree.command(name="cancel", description="Cancel a scheduled raid (creator only)")
+async def slash_cancel_command(interaction: discord.Interaction, raid_id: str):
+    """
+    Slash command to cancel a scheduled raid.
+    """
+    try:
+        if raid_id not in SCHEDULED_RAIDS:
+            await interaction.response.send_message("❌ Raid not found.", ephemeral=True)
+            return
+        
+        raid = SCHEDULED_RAIDS[raid_id]
+        
+        # Check if user is the creator or has admin permissions
+        has_admin = False
+        if hasattr(interaction.user, 'guild_permissions') and interaction.user.guild_permissions:
+            has_admin = interaction.user.guild_permissions.administrator
+        
+        if str(interaction.user) != raid["creator"] and not has_admin:
+            await interaction.response.send_message("❌ Only the raid creator or administrators can cancel raids.", ephemeral=True)
+            return
+        
+        raid_name = raid["name"]
+        participants_count = len(raid["participants"])
+        
+        # Remove the raid
+        del SCHEDULED_RAIDS[raid_id]
+        
+        embed = discord.Embed(
+            title="🚫 Raid Cancelled",
+            description=f"The raid **{raid_name}** has been cancelled.",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Participants Notified", value=f"{participants_count}", inline=True)
+        embed.add_field(name="Cancelled by", value=interaction.user.mention, inline=True)
+        
+        await interaction.response.send_message(embed=embed)
+        logger.info(f"Raid {raid_id} cancelled by {interaction.user}")
+        
+    except Exception as e:
+        logger.error(f"Error in cancel command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error cancelling raid.", ephemeral=True)
+
+@bot.command(name="cancel")
+async def prefix_cancel_command(ctx, raid_id: str):
+    """
+    Traditional prefix command to cancel a scheduled raid.
+    """
+    try:
+        if raid_id not in SCHEDULED_RAIDS:
+            await ctx.send("❌ Raid not found.")
+            return
+        
+        raid = SCHEDULED_RAIDS[raid_id]
+        
+        # Check if user is the creator or has admin permissions
+        if str(ctx.author) != raid["creator"] and not ctx.author.guild_permissions.administrator:
+            await ctx.send("❌ Only the raid creator or administrators can cancel raids.")
+            return
+        
+        raid_name = raid["name"]
+        participants_count = len(raid["participants"])
+        
+        # Remove the raid
+        del SCHEDULED_RAIDS[raid_id]
+        
+        embed = discord.Embed(
+            title="🚫 Raid Cancelled",
+            description=f"The raid **{raid_name}** has been cancelled.",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Participants Notified", value=f"{participants_count}", inline=True)
+        embed.add_field(name="Cancelled by", value=ctx.author.mention, inline=True)
+        
+        await ctx.send(embed=embed)
+        logger.info(f"Raid {raid_id} cancelled by {ctx.author}")
+        
+    except Exception as e:
+        logger.error(f"Error in prefix cancel command: {e}", exc_info=True)
+        await ctx.send("❌ Error cancelling raid.")
+
+# List Raids Commands
+@bot.tree.command(name="raids", description="List all scheduled raids")
+async def slash_raids_command(interaction: discord.Interaction):
+    """
+    Slash command to list all scheduled raids.
+    """
+    try:
+        if not SCHEDULED_RAIDS:
+            embed = discord.Embed(
+                title="📅 Scheduled Raids",
+                description="No raids currently scheduled.",
+                color=discord.Color.blue()
+            )
+            await interaction.response.send_message(embed=embed)
+            return
+        
+        embed = discord.Embed(
+            title="📅 Scheduled Raids",
+            color=discord.Color.blue()
+        )
+        
+        for raid_id, raid in SCHEDULED_RAIDS.items():
+            participants_text = f"{len(raid['participants'])} participants"
+            if raid['participants']:
+                participants_text += f": {', '.join(raid['participants'][:3])}"
+                if len(raid['participants']) > 3:
+                    participants_text += f" (+{len(raid['participants']) - 3} more)"
+            
+            embed.add_field(
+                name=f"🗡️ {raid['name']} (ID: {raid_id})",
+                value=f"**Time:** {raid['time']}\n**Creator:** {raid['creator']}\n**Participants:** {participants_text}",
+                inline=False
+            )
+        
+        embed.set_footer(text="Use /join <raid_id> to participate")
+        await interaction.response.send_message(embed=embed)
+        
+    except Exception as e:
+        logger.error(f"Error in raids command: {e}", exc_info=True)
+        await interaction.response.send_message("❌ Error listing raids.", ephemeral=True)
+
+@bot.command(name="raids")
+async def prefix_raids_command(ctx):
+    """
+    Traditional prefix command to list all scheduled raids.
+    """
+    try:
+        if not SCHEDULED_RAIDS:
+            embed = discord.Embed(
+                title="📅 Scheduled Raids",
+                description="No raids currently scheduled.",
+                color=discord.Color.blue()
+            )
+            await ctx.send(embed=embed)
+            return
+        
+        embed = discord.Embed(
+            title="📅 Scheduled Raids",
+            color=discord.Color.blue()
+        )
+        
+        for raid_id, raid in SCHEDULED_RAIDS.items():
+            participants_text = f"{len(raid['participants'])} participants"
+            if raid['participants']:
+                participants_text += f": {', '.join(raid['participants'][:3])}"
+                if len(raid['participants']) > 3:
+                    participants_text += f" (+{len(raid['participants']) - 3} more)"
+            
+            embed.add_field(
+                name=f"🗡️ {raid['name']} (ID: {raid_id})",
+                value=f"**Time:** {raid['time']}\n**Creator:** {raid['creator']}\n**Participants:** {participants_text}",
+                inline=False
+            )
+        
+        embed.set_footer(text="Use !join <raid_id> to participate")
+        await ctx.send(embed=embed)
+        
+    except Exception as e:
+        logger.error(f"Error in prefix raids command: {e}", exc_info=True)
+        await ctx.send("❌ Error listing raids.")
 
 async def add_reactions_to_message(message):
     """

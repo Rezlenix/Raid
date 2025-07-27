@@ -29,6 +29,10 @@ REACTION_EMOJIS = [
     "👑"   # Crown (leadership)
 ]
 
+# Scheduled raids storage (in-memory for now)
+# Format: {"raid_id": {"name": "Raid Name", "time": "Schedule", "creator": "User", "participants": []}}
+SCHEDULED_RAIDS = {}
+
 # Configuration notes:
 # - To modify raid participants, edit the RAID_DATA dictionary above
 # - To change reactions, modify the REACTION_EMOJIS list
